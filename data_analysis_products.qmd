@@ -1,0 +1,42 @@
+---
+title: "data_analysis_products"
+format: html
+---
+
+```{r}
+#| mesage: false
+
+library(tidyverse)
+library(janitor)   # clean_names(), tabyl()
+library(skimr)     # skim() for fast EDA
+```
+
+```{r}
+#| label: load-data
+#| message: false
+
+enabled <- read_csv(
+  "data/enabled.csv",
+  show_col_types = FALSE
+) %>%
+  janitor::clean_names()
+
+
+```
+
+```{r}
+#| label: sanity-check
+
+glimpse(enabled)
+dim(enabled)
+
+# show column names (useful for writing later code)
+names(enabled)
+```
+
+```{r}
+#| label: write-csv
+
+write_csv(enabled, "data/enabled.csv")
+
+```
