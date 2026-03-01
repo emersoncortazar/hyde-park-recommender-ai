@@ -21,7 +21,6 @@ enabled <- read_csv(
 ) %>%
   janitor::clean_names()
 
-
 ```
 
 ```{r}
@@ -35,8 +34,259 @@ names(enabled)
 ```
 
 ```{r}
-#| label: write-csv
+#| label: check-price
 
-write_csv(enabled, "data/enabled.csv")
+# look at the first few unique values
+enabled %>%
+  distinct(price) %>%
+  slice_head(n = 20)
+
+# how many values are non-numeric?
+enabled %>%
+  summarise(
+    pct_parseable_as_number = mean(!is.na(parse_number(price))) * 100,
+    pct_has_letters = mean(str_detect(price, "[A-Za-z]")) * 100
+  )
+
+```
+
+```{r}
+#| label: check-real-price
+
+# list columns that look like they might be price fields
+names(enabled)[str_detect(names(enabled), "price")]
+
+# check last_sold_price (this one IS numeric in your output)
+enabled %>%
+  summarise(
+    missing_last_sold_price = mean(is.na(last_sold_price)) * 100,
+    min_last_sold_price = min(last_sold_price, na.rm = TRUE),
+    median_last_sold_price = median(last_sold_price, na.rm = TRUE),
+    max_last_sold_price = max(last_sold_price, na.rm = TRUE)
+  )
+```
+
+```{r}
+#| label: check-price-tolerance
+
+
+enabled %>%
+  count(quote_price_tolerance)
+
+
+```
+```{r}
+#| label: drop-constant-features
+
+
+```
+
+
+```{r}
+#| label: understand-diversity
+
+
+enabled %>%
+  summarise(
+    rows = n(),
+    columns = ncol(enabled),
+    unique_skus = n_distinct(sku),
+    unique_part_numbers = n_distinct(manufacturer_part_number),
+    unique_brands = n_distinct(brand_default_title),
+    unique_categories = n_distinct(category_default_title),
+    unique_attribute_families = n_distinct(attribute_family_code)
+  )
+```
+
+```{r}
+#| identify-core-columns
+
+enabled %>%
+  count(brand_default_title, sort = TRUE) %>%
+  slice_head(n = 20)
+```
+```{r}
+
+#| label: find-missing-data
+
+enabled %>%
+  summarise(across(everything(),
+                   ~mean(is.na(.))*100)) %>%
+  pivot_longer(everything(),
+               names_to="column",
+               values_to="percent_missing") %>%
+  arrange(desc(percent_missing))
+```
+
+```{r}
+#| label: duplicate-finding
+
+enabled %>%
+  count(manufacturer_part_number) %>%
+  filter(n > 1)
+```
+
+```{r}
+#| label: constant-columns
+
+enabled %>%
+  summarise(across(everything(), n_distinct)) %>%
+  pivot_longer(everything(),
+               names_to="column",
+               values_to="unique") %>%
+  arrange(unique)
+
+```
+
+```{r}
+#| label: find-inconsistent-formatting
+
+enabled %>%
+  summarise(across(where(is.character),
+                   ~sum(grepl("^\\s|\\s$", .))))
+
+```
+
+
+```{r}
+#| label: find-case-inconsist
+
+enabled %>%
+  distinct(brand_default_title) %>%
+  mutate(lower = tolower(brand_default_title)) %>%
+  count(lower) %>%
+  filter(n > 1)
+
+```
+
+```{r}
+#| label: manuf-number-incons
+
+enabled %>%
+  summarise(
+    has_spaces =
+      mean(grepl(" ", manufacturer_part_number)),
+
+    has_lowercase =
+      mean(grepl("[a-z]", manufacturer_part_number)),
+
+    has_special =
+      mean(grepl("[^A-Za-z0-9-]", manufacturer_part_number))
+  )
+```
+
+```{r}
+#| label: html-cleaning
+
+enabled %>%
+  summarise(
+    html_desc =
+      mean(grepl("<.*?>", descriptions_mro_value),
+           na.rm=TRUE)
+  )
+```
+
+```{r}
+#| label: zero-numeric-values
+
+enabled %>%
+  summarise(
+    price_zero =
+      mean(last_sold_price == 0,
+           na.rm=TRUE),
+
+    weight_zero =
+      mean(item_weight == 0,
+           na.rm=TRUE)
+  )
+
+
+```
+
+```{r}
+#| label: identify-outliers
+
+enabled %>%
+  summarise(
+    price_99 =
+      quantile(last_sold_price, .99, na.rm=TRUE),
+
+    weight_99 =
+      quantile(item_weight, .99, na.rm=TRUE)
+  )
+
+```
+
+```{r}
+#| label: are-each-category-name-trust
+
+enabled %>%
+  distinct(category_default_title) %>%
+  arrange(category_default_title)
+
+
+```
+
+
+
+```{r}
+#| label: check-similarity
+
+enabled %>%
+  count(price, brand_default_title, sort=TRUE) %>%
+  slice_head(n=30)
+```
+
+```{r}
+#| label: category-size-distr
+
+enabled %>%
+  count(category_default_title) %>%
+  summarise(
+    smallest = min(n),
+    median = median(n),
+    largest = max(n)
+  )
+
+enabled %>%
+  count(category_default_title) %>%
+  ggplot(aes(n)) +
+  geom_histogram(bins=50)
+```
+
+```{r}
+
+#| label: attribute-distr
+
+enabled %>%
+  count(attribute_family_code, sort=TRUE)
+```
+
+```{r}
+#| label: price-distr
+
+enabled %>%
+  ggplot(aes(last_sold_price)) +
+  geom_histogram(bins=50)
+
+
+enabled %>%
+  ggplot(aes(last_sold_price)) +
+  geom_histogram(bins=50) +
+  scale_x_log10()
+```
+
+```{r}
+#| label: weight-distr
+
+enabled %>%
+  ggplot(aes(item_weight)) +
+  geom_histogram(bins=50)
+
+enabled %>%
+  ggplot(aes(item_weight)) +
+  geom_histogram(bins=50) +
+  scale_x_log10()
+
 
 ```
