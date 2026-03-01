@@ -66,21 +66,6 @@ enabled %>%
   )
 ```
 
-```{r}
-#| label: check-price-tolerance
-
-
-enabled %>%
-  count(quote_price_tolerance)
-
-
-```
-```{r}
-#| label: drop-constant-features
-
-
-```
-
 
 ```{r}
 #| label: understand-diversity
@@ -99,7 +84,7 @@ enabled %>%
 ```
 
 ```{r}
-#| identify-core-columns
+#| label: identify-core-columns
 
 enabled %>%
   count(brand_default_title, sort = TRUE) %>%
