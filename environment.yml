@@ -1,0 +1,31 @@
+name: mro-recommender
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - pip
+
+  # ── Core data ──────────────────────────────────────────────
+  - pandas=2.2
+  - numpy=1.26
+  - pyarrow          # fast parquet read/write (useful later)
+
+  # ── Notebook ───────────────────────────────────────────────
+  - jupyterlab
+  - ipykernel
+  - ipywidgets       # progress bars in notebooks
+
+  # ── Viz / EDA ──────────────────────────────────────────────
+  - matplotlib
+  - seaborn
+
+  # ── Utilities ─────────────────────────────────────────────
+  - tqdm             # progress bars in loops
+  - python-dotenv    # for API keys later
+
+  # ── Future: recommender layer (install now, use later) ─────
+  - pip:
+    - sentence-transformers   # text embeddings
+    - scikit-learn            # cosine similarity, clustering
+    - faiss-cpu               # fast nearest-neighbor search
