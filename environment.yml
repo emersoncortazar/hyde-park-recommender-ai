@@ -9,7 +9,7 @@ dependencies:
   # ── Core data ──────────────────────────────────────────────
   - pandas=2.2
   - numpy=1.26
-  - pyarrow          # fast parquet read/write (useful later)
+  - pyarrow          # parquet read/write for model catalog
 
   # ── Notebook ───────────────────────────────────────────────
   - jupyterlab
@@ -22,10 +22,11 @@ dependencies:
 
   # ── Utilities ─────────────────────────────────────────────
   - tqdm             # progress bars in loops
-  - python-dotenv    # for API keys later
+  - python-dotenv
 
-  # ── Future: recommender layer (install now, use later) ─────
+  # ── Recommender model ─────────────────────────────────────
   - pip:
-    - sentence-transformers   # text embeddings
-    - scikit-learn            # cosine similarity, clustering
-    - faiss-cpu               # fast nearest-neighbor search
+    - scikit-learn>=1.3.0    # TF-IDF vectorizer + cosine similarity
+    - joblib>=1.3.0          # model serialization
+    - sentence-transformers  # future: embedding-based retrieval
+    - faiss-cpu              # future: fast nearest-neighbor search
