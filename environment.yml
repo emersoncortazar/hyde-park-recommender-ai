@@ -24,6 +24,12 @@ dependencies:
   - tqdm             # progress bars in loops
   - python-dotenv
 
+  # ── Web scraping ──────────────────────────────────────────
+  - pip:
+    - httpx>=0.27.0          # async HTTP client
+    - beautifulsoup4>=4.12   # HTML parsing
+    - lxml                   # fast HTML parser backend for bs4
+
   # ── Recommender model ─────────────────────────────────────
   - pip:
     - scikit-learn>=1.3.0    # TF-IDF vectorizer + cosine similarity
