@@ -1,5 +1,30 @@
+# R
 .Rproj.user
 .Rhistory
 .RData
 .Ruserdata
+
+# Data — raw and processed files are not committed
 data/
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+
+# Generated model artifacts
+models/
+!models/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.env
+
+# Conda
+.conda/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Claude Code local settings
+.claude/
