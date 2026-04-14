@@ -20,7 +20,7 @@ from src.data_loader import load
 from src.recommender import PartRecommender
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CSV_PATH = os.path.join(PROJECT_ROOT, "cleaned_data.csv")
+CSV_PATH = os.path.join(PROJECT_ROOT, "data", "cleaned_data.csv")
 MODEL_DIR = os.path.join(PROJECT_ROOT, "models")
 MODEL_PATH = os.path.join(MODEL_DIR, "recommender.joblib")
 CATALOG_PATH = os.path.join(MODEL_DIR, "catalog.parquet")
