@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import sqlite3
 from pathlib import Path
 from typing import Any
@@ -77,6 +78,38 @@ def _load_scraped(cache_path: Path) -> pd.DataFrame:
     return results
 
 
+_WORD_RE = re.compile(r"[A-Za-z0-9]{3,}")
+
+
+def _tokens(text: Any) -> set[str]:
+    if not isinstance(text, str):
+        return set()
+    return {w.lower() for w in _WORD_RE.findall(text)}
+
+
+def _is_suspicious_match(
+    scraped_desc: Any,
+    existing_texts: list[Any],
+    min_overlap_ratio: float = 0.15,
+    min_existing_tokens: int = 10,
+) -> bool:
+    """Heuristic: when the catalog already has substantial description text,
+    a scrape result that shares <15 % of its tokens with that text is almost
+    certainly a false part-number collision (e.g., a Graco-valve MFR PN that
+    happens to match an unrelated area-rug SKU on the distributor). Drop these.
+    """
+    scraped_tokens = _tokens(scraped_desc)
+    if not scraped_tokens:
+        return False
+    existing_tokens: set[str] = set()
+    for t in existing_texts:
+        existing_tokens |= _tokens(t)
+    if len(existing_tokens) < min_existing_tokens:
+        return False  # No existing text to compare against — accept the scrape
+    overlap_ratio = len(scraped_tokens & existing_tokens) / len(scraped_tokens)
+    return overlap_ratio < min_overlap_ratio
+
+
 def merge_scraped(df: pd.DataFrame, scraped: pd.DataFrame) -> pd.DataFrame:
     """Left-join scraped columns onto df, prefixing spec keys with `web_`."""
     if scraped.empty:
@@ -115,6 +148,35 @@ def merge_scraped(df: pd.DataFrame, scraped: pd.DataFrame) -> pd.DataFrame:
         on=["_brand_key", "_pn_key"],
         how="left",
     ).drop(columns=["_brand_key", "_pn_key"])
+
+    # Null-out scraped data for rows where the scrape is a suspicious
+    # part-number-collision mismatch — we'd rather have missing data than
+    # wrong data.
+    context_cols = [
+        "default_short_description",
+        "livhaven_short_description",
+        "manufacturer_description",
+        "mro_description",
+        "default_name",
+    ]
+    web_cols_to_null = [c for c in out.columns if c.startswith("web_")]
+    scraped_mask = out["scraped_description"].notna()
+    flagged = 0
+    for idx in out[scraped_mask].index:
+        row = out.loc[idx]
+        if _is_suspicious_match(
+            row["scraped_description"],
+            [row.get(c) for c in context_cols],
+        ):
+            out.at[idx, "scraped_description"] = None
+            out.at[idx, "scrape_source"] = None
+            for wc in web_cols_to_null:
+                out.at[idx, wc] = None
+            flagged += 1
+    if flagged:
+        logger.info("Dropped %s suspicious scrape matches (PN collisions).", flagged)
+        print(f"  Dropped {flagged} suspicious scrape matches (PN collisions)")
+
     return out
 
 
