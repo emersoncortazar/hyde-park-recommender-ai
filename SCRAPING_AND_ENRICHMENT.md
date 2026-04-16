@@ -108,8 +108,23 @@ python -m scraper.pipeline
 |---------------------------------------------|-----------|
 | Rows                                        | 292,640   |
 | Columns (original → enriched)               | 22 → 38   |
-| Rows with **at least one** extracted spec   | ~140 k (48 %) |
-| Rows with web-scraped description           | small (scrape-dependent) |
+| Rows with **at least one** extracted spec   | 136,299 (46.6 %) |
+| Rows with web-scraped description (from a 1,050-row Zoro sample) | 119 (9.7 % sample hit rate) |
+
+### Measured Zoro hit rate by brand (1,050-row stratified sample)
+
+Brands fall into three cohorts:
+
+- **Hydraulic / pneumatic specialists → ~0 %**: Bosch Rexroth, Versa
+  Products, Hydac, Aventics, Hengli, Balluff, Daman Products, Graco
+  (Zoro simply doesn't index these SKUs).
+- **Mixed industrial → 5–20 %**: Parker, Schroeder Industries.
+- **Electrical / filter / instrumentation → 40–90 %**: Phoenix Contact,
+  Donaldson, NOSHOK, Hengst Filtration, Bijur Delimon. These are the
+  brands where web scraping does pay off.
+
+The pipeline is resumable (SQLite cache at `data/scrape_cache.db`), so a
+larger run can continue from the 1,050-part sample without repeating work.
 
 ## Known limitations
 
