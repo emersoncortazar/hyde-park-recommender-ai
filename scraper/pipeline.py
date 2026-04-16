@@ -20,7 +20,7 @@ from tqdm.asyncio import tqdm
 
 from scraper.cache import ScrapeCache
 from scraper.http import make_client
-from scraper.parsers import grainger
+from scraper.parsers import grainger, zoro
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +28,11 @@ CLEAN_PATH    = Path("data/cleaned_data.csv")
 ENRICHED_PATH = Path("data/enriched_data.csv")
 
 # Brand name → scraper module (None = Grainger only)
-BRAND_SCRAPERS = {
-    "parker":        "scraper.parsers.parker",
-    "smc":           "scraper.parsers.smc",
+# Parker and SMC direct scrapers are disabled — their sites require JS
+# rendering which is slow/expensive via ScraperAPI. Grainger covers both.
+BRAND_SCRAPERS: dict[str, str] = {
+    # "parker": "scraper.parsers.parker",
+    # "smc":    "scraper.parsers.smc",
 }
 
 # Max concurrent scrape tasks — tune based on available bandwidth
@@ -58,6 +60,12 @@ async def _scrape_one(
         # Grainger fallback if brand scraper missed or errored
         if status != "ok":
             status, description, specs, source = await grainger.scrape(
+                brand, part_number, client
+            )
+
+        # Zoro as secondary fallback — covers specialized parts Grainger misses
+        if status != "ok":
+            status, description, specs, source = await zoro.scrape(
                 brand, part_number, client
             )
 

@@ -31,3 +31,10 @@ __pycache__/
 
 # API Keys
 .env
+
+# macOS
+.DS_Store
+
+# Local working copy of the old "Initial Model" tree (data + artifacts).
+# Its source has already been promoted to src/, scripts/, playbooks/.
+/Initial Model/
